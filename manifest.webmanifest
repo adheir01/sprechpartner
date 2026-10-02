@@ -1,0 +1,17 @@
+{
+  "name": "Sprechpartner",
+  "short_name": "Sprechen",
+  "description": "Low-stakes German speaking practice. Nobody is listening.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#D3D8D4",
+  "theme_color": "#2C5460",
+  "lang": "de",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

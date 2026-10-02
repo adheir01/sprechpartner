@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sprechpartner</title>
+<meta name="description" content="Low-stakes German speaking practice. Nobody is listening." />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#2C5460" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Newsreader:opsz,wght@6..72,300..600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ground:#D3D8D4;
+    --paper:#F2F4F1;
+    --ink:#16201D;
+    --ink-soft:#4A5751;
+    --brick:#8A4B3A;
+    --petrol:#2C5460;
+    --line:#A9B3AE;
+    --display:"Bricolage Grotesque", system-ui, sans-serif;
+    --body:"Newsreader", Georgia, serif;
+    --mono:"IBM Plex Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:var(--body);
+    font-size:18px;
+    line-height:1.55;
+    min-height:100vh;
+    -webkit-text-size-adjust:100%;
+  }
+  button,input{font-family:inherit;color:inherit;}
+  button{cursor:pointer;}
+  button:focus-visible,input:focus-visible,textarea:focus-visible{
+    outline:2px solid var(--petrol);outline-offset:2px;
+  }
+
+  .shell{max-width:1180px;margin:0 auto;padding:26px 20px 40px;}
+
+  .masthead{
+    display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:13px;margin-bottom:16px;
+  }
+  .wordmark{
+    font-family:var(--display);font-weight:700;
+    font-size:clamp(27px,4.2vw,42px);letter-spacing:-.025em;line-height:1;margin:0;
+  }
+  .wordmark span{color:var(--brick);}
+  .mast-right{display:flex;align-items:center;gap:14px;}
+  .tagline{
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-soft);margin:0;
+  }
+  .gear{
+    background:none;border:1px solid var(--line);border-radius:999px;
+    padding:5px 13px;font-family:var(--mono);font-size:11px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--ink-soft);
+  }
+  .gear:hover{border-color:var(--petrol);color:var(--ink);}
+
+  /* settings */
+  .settings{
+    background:var(--paper);border:1px solid var(--line);
+    padding:17px 18px;margin-bottom:18px;
+  }
+  .settings[hidden]{display:none;}
+  .field{margin-bottom:13px;}
+  .field:last-of-type{margin-bottom:0;}
+  .field label{
+    display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px;
+  }
+  .field input{
+    width:100%;background:transparent;border:none;border-bottom:1px solid var(--line);
+    padding:7px 2px;font-family:var(--mono);font-size:14px;color:var(--ink);
+  }
+  .field input:focus{border-bottom-color:var(--petrol);outline:none;}
+  .field-hint{
+    font-family:var(--body);font-size:14.5px;color:var(--ink-soft);margin:6px 0 0;line-height:1.4;
+  }
+  .field-hint a{color:var(--petrol);}
+  .remember{
+    display:flex;align-items:center;gap:8px;font-family:var(--mono);
+    font-size:11.5px;letter-spacing:.05em;color:var(--ink-soft);margin-top:13px;
+  }
+  .remember input{width:auto;}
+
+  /* topics */
+  .topics{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;}
+  .topic{
+    background:transparent;border:1px solid var(--line);border-radius:999px;
+    padding:6px 14px 7px;font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);
+    transition:background .16s ease,color .16s ease,border-color .16s ease;
+  }
+  .topic:hover{border-color:var(--petrol);color:var(--ink);}
+  .topic[aria-pressed="true"]{background:var(--petrol);border-color:var(--petrol);color:var(--paper);}
+
+  .board{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:20px;align-items:start;}
+  @media (max-width:880px){.board{grid-template-columns:1fr;}}
+
+  .panel{background:var(--paper);border:1px solid var(--line);}
+
+  .stream{padding:22px 22px 8px;min-height:330px;max-height:54vh;overflow-y:auto;}
+  .empty{color:var(--ink-soft);font-size:17px;max-width:34ch;margin:24px auto;text-align:center;}
+  .empty strong{
+    display:block;font-family:var(--display);font-weight:600;font-size:21px;
+    color:var(--ink);margin-bottom:8px;
+  }
+
+  .turn{margin-bottom:19px;}
+  .who{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--ink-soft);display:block;margin-bottom:5px;
+  }
+  .said{font-size:19.5px;line-height:1.5;margin:0;}
+  .turn.mine .said{color:var(--ink-soft);border-left:2px solid var(--line);padding-left:13px;}
+  .replay{
+    background:none;border:none;padding:2px 0 0;margin-top:5px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    color:var(--petrol);text-transform:uppercase;
+  }
+  .replay:hover{text-decoration:underline;}
+
+  .thinking{
+    font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-soft);padding:4px 0 18px;
+  }
+  .thinking::after{content:"";animation:dots 1.3s steps(4,end) infinite;}
+  @keyframes dots{0%{content:"";}25%{content:".";}50%{content:"..";}75%{content:"...";}}
+
+  .dock{border-top:1px solid var(--line);padding:15px 22px 17px;}
+  .mic-row{display:flex;gap:11px;align-items:center;}
+  .mic{
+    flex:0 0 auto;width:56px;height:56px;border-radius:50%;
+    border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    display:grid;place-items:center;transition:transform .14s ease,background .14s ease;
+  }
+  .mic:hover{transform:scale(1.04);}
+  .mic[data-live="true"]{background:var(--brick);border-color:var(--brick);animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(138,75,58,.45);}
+    50%{box-shadow:0 0 0 11px rgba(138,75,58,0);}
+  }
+  .mic svg{width:22px;height:22px;fill:currentColor;}
+  .mic:disabled{opacity:.35;cursor:not-allowed;animation:none;}
+
+  .typed{
+    flex:1 1 auto;font-family:var(--body);font-size:17.5px;background:transparent;
+    border:none;border-bottom:1px solid var(--line);padding:9px 2px;color:var(--ink);
+    resize:none;line-height:1.4;max-height:96px;
+  }
+  .typed::placeholder{color:var(--ink-soft);opacity:.75;}
+  .typed:focus{border-bottom-color:var(--petrol);outline:none;}
+
+  .send{
+    flex:0 0 auto;background:transparent;border:1px solid var(--line);padding:9px 15px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  .send:hover{border-color:var(--petrol);color:var(--ink);}
+
+  .dock-meta{
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+    margin-top:11px;font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--ink-soft);
+  }
+  .slow{
+    background:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.07em;color:var(--ink-soft);
+  }
+  .slow[aria-pressed="true"]{background:var(--petrol);border-color:var(--petrol);color:var(--paper);}
+
+  .notice{
+    margin-top:11px;padding:9px 12px;border-left:2px solid var(--brick);
+    background:rgba(138,75,58,.07);font-family:var(--mono);font-size:12px;
+    line-height:1.5;color:var(--ink);
+  }
+  .notice:empty{display:none;}
+  .notice a{color:var(--petrol);}
+
+  /* ledger */
+  .ledger{padding:19px 19px 21px;position:sticky;top:20px;}
+  .ledger-head{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px solid var(--ink);padding-bottom:7px;margin-bottom:14px;
+  }
+  .ledger-head h2{
+    font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.02em;
+    margin:0;text-transform:uppercase;
+  }
+  .tally{font-family:var(--mono);font-size:12px;color:var(--ink-soft);}
+  .ledger-empty{font-family:var(--mono);font-size:12.5px;line-height:1.7;color:var(--ink-soft);}
+
+  .entry{
+    border-bottom:1px dotted var(--line);padding:0 0 12px;margin-bottom:12px;
+    font-family:var(--mono);font-size:13px;line-height:1.6;
+  }
+  .entry:last-of-type{border-bottom:none;}
+  .entry-n{color:var(--ink-soft);font-size:10.5px;letter-spacing:.13em;display:block;margin-bottom:5px;}
+  .wrong{color:var(--brick);text-decoration:line-through;text-decoration-thickness:1px;}
+  .arrow{color:var(--line);padding:0 6px;}
+  .right{color:var(--petrol);font-weight:500;}
+  .why{
+    display:block;margin-top:5px;font-family:var(--body);font-size:14.5px;
+    line-height:1.45;color:var(--ink-soft);
+  }
+
+  .export{
+    width:100%;margin-top:15px;background:transparent;border:1px solid var(--line);padding:10px;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  .export:hover{border-color:var(--petrol);color:var(--ink);}
+
+  .colophon{
+    margin-top:24px;font-family:var(--mono);font-size:11px;line-height:1.7;
+    letter-spacing:.03em;color:var(--ink-soft);border-top:1px solid var(--line);padding-top:12px;
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="masthead">
+    <h1 class="wordmark">Sprech<span>partner</span></h1>
+    <div class="mast-right">
+      <p class="tagline">Niemand hört zu</p>
+      <button class="gear" id="gear">Schlüssel</button>
+    </div>
+  </header>
+
+  <section class="settings" id="settings" hidden>
+    <div class="field">
+      <label for="key">Google AI Studio API key</label>
+      <input id="key" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…" />
+      <p class="field-hint">Free tier, no card. Get one at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. It stays on this device and goes straight to Google.</p>
+    </div>
+    <div class="field">
+      <label for="model">Model</label>
+      <input id="model" type="text" spellcheck="false" value="gemini-2.5-flash" />
+      <p class="field-hint">Flash is the free workhorse. Swap in a newer one any time — AI Studio lists what your key can reach.</p>
+    </div>
+    <label class="remember"><input type="checkbox" id="remember" checked /> Auf diesem Gerät speichern</label>
+  </section>
+
+  <nav class="topics" id="topics" aria-label="Situation"></nav>
+
+  <main class="board">
+    <section class="panel" aria-label="Gespräch">
+      <div class="stream" id="stream">
+        <p class="empty">
+          <strong>Add your key, then just talk.</strong>
+          She opens the conversation. If you'd rather talk about something else, say so — she follows you.
+        </p>
+      </div>
+
+      <div class="dock">
+        <div class="mic-row">
+          <button class="mic" id="mic" data-live="false" aria-label="Sprechen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12z"/></svg>
+          </button>
+          <textarea class="typed" id="typed" rows="1" placeholder="…oder tippen"></textarea>
+          <button class="send" id="send">Senden</button>
+        </div>
+        <div class="dock-meta">
+          <span id="status">Bereit</span>
+          <button class="slow" id="slow" aria-pressed="false">Langsam sprechen</button>
+        </div>
+        <div class="notice" id="notice"></div>
+      </div>
+    </section>
+
+    <aside class="panel ledger" aria-label="Korrekturen">
+      <div class="ledger-head">
+        <h2>Korrekturen</h2>
+        <span class="tally" id="tally">0</span>
+      </div>
+      <div id="entries">
+        <p class="ledger-empty">Empty. Corrections collect here as you talk — your version, the fixed version, why. No score, no streak. Just a list you can take away.</p>
+      </div>
+      <button class="export" id="export">Sitzung kopieren</button>
+    </aside>
+  </main>
+
+  <p class="colophon">
+    Speech in/out: browser Web Speech API (de-DE) · Brain: Google Gemini · Key never leaves this device<br>
+    Mic blocked? Type instead — corrections work identically.
+  </p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- safe storage (works locally, no-ops in sandboxes) ---------- */
+  const store = {
+    get(k){ try { return localStorage.getItem(k); } catch(_){ return null; } },
+    set(k,v){ try { localStorage.setItem(k,v); } catch(_){} },
+    del(k){ try { localStorage.removeItem(k); } catch(_){} }
+  };
+
+  /* ---------- situations ---------- */
+  const TOPICS = [
+    { id:"frei", label:"Freies Gespräch",
+      brief:"An open, relaxed chat. You are a warm, curious friend. Propose something light to talk about, but drop it instantly if they bring up anything else." },
+    { id:"buero", label:"Small talk im Büro",
+      brief:"Monday-morning small talk between colleagues in a German office. You are a friendly colleague: weekend, weather, coffee, plans." },
+    { id:"amt", label:"Beim Amt",
+      brief:"A German public office (Bürgeramt / Ausländerbehörde). You are the Sachbearbeiter: polite, mildly bureaucratic, asking for documents and details." },
+    { id:"wohnung", label:"Wohnungsbesichtigung",
+      brief:"An apartment viewing in Hamburg. You are the landlord showing the flat, asking about job, income and household." },
+    { id:"vorstellung", label:"Vorstellungsgespräch",
+      brief:"A job interview for a senior data analyst role. You are the hiring manager: experience, tools, a past project, motivation." },
+    { id:"arzt", label:"Beim Arzt",
+      brief:"A doctor's appointment. You are the doctor: symptoms, how long, medication, daily habits." }
+  ];
+
+  /* ---------- state ---------- */
+  let topic = TOPICS[0];
+  let contents = [];       // Gemini contents array
+  let corrections = [];
+  let slow = false, busy = false, started = false;
+
+  const $ = id => document.getElementById(id);
+  const elTopics=$("topics"), elStream=$("stream"), elTyped=$("typed"), elMic=$("mic"),
+        elSend=$("send"), elStatus=$("status"), elSlow=$("slow"), elNotice=$("notice"),
+        elEntries=$("entries"), elTally=$("tally"), elExport=$("export"),
+        elGear=$("gear"), elSettings=$("settings"), elKey=$("key"),
+        elModel=$("model"), elRemember=$("remember");
+
+  function note(html){ elNotice.innerHTML = html || ""; }
+  function status(t){ elStatus.textContent = t; }
+
+  /* ---------- settings ---------- */
+  const savedKey = store.get("sp_key"), savedModel = store.get("sp_model");
+  if (savedKey) elKey.value = savedKey;
+  if (savedModel) elModel.value = savedModel;
+
+  elGear.addEventListener("click", () => {
+    elSettings.hidden = !elSettings.hidden;
+    if (!elSettings.hidden) elKey.focus();
+  });
+  function persist(){
+    if (elRemember.checked){
+      store.set("sp_key", elKey.value.trim());
+      store.set("sp_model", elModel.value.trim());
+    } else {
+      store.del("sp_key"); store.del("sp_model");
+    }
+  }
+  elKey.addEventListener("change", persist);
+  elModel.addEventListener("change", persist);
+  elRemember.addEventListener("change", persist);
+
+  function needKey(){
+    if (elKey.value.trim()) return false;
+    elSettings.hidden = false;
+    note('No API key yet. Paste one from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> — it is free and takes a minute.');
+    elKey.focus();
+    return true;
+  }
+
+  /* ---------- topics ---------- */
+  TOPICS.forEach(t => {
+    const b = document.createElement("button");
+    b.className = "topic";
+    b.textContent = t.label;
+    b.setAttribute("aria-pressed", String(t.id === topic.id));
+    b.addEventListener("click", () => {
+      topic = t; contents = []; started = false;
+      [...elTopics.children].forEach(c => c.setAttribute("aria-pressed","false"));
+      b.setAttribute("aria-pressed","true");
+      elStream.innerHTML = "";
+      note("");
+      openConversation();
+    });
+    elTopics.appendChild(b);
+  });
+
+  /* ---------- render ---------- */
+  function addTurn(who, text, speakable){
+    const e = elStream.querySelector(".empty"); if (e) e.remove();
+    const wrap = document.createElement("div");
+    wrap.className = "turn " + (who === "mine" ? "mine" : "theirs");
+    const label = document.createElement("span");
+    label.className = "who";
+    label.textContent = who === "mine" ? "Du" : topic.label;
+    wrap.appendChild(label);
+    const p = document.createElement("p");
+    p.className = "said"; p.textContent = text;
+    wrap.appendChild(p);
+    if (speakable){
+      const r = document.createElement("button");
+      r.className = "replay"; r.textContent = "↺ nochmal hören";
+      r.addEventListener("click", () => speak(text));
+      wrap.appendChild(r);
+    }
+    elStream.appendChild(wrap);
+    elStream.scrollTop = elStream.scrollHeight;
+  }
+  function showThinking(){
+    const d = document.createElement("div");
+    d.className = "thinking"; d.textContent = "denkt nach";
+    elStream.appendChild(d); elStream.scrollTop = elStream.scrollHeight;
+    return d;
+  }
+  function renderLedger(){
+    elTally.textContent = String(corrections.length);
+    if (!corrections.length) return;
+    elEntries.innerHTML = "";
+    corrections.forEach((c,i) => {
+      const e = document.createElement("div"); e.className = "entry";
+      const n = document.createElement("span"); n.className = "entry-n";
+      n.textContent = String(i+1).padStart(2,"0"); e.appendChild(n);
+      const w = document.createElement("span"); w.className = "wrong"; w.textContent = c.wrong; e.appendChild(w);
+      const a = document.createElement("span"); a.className = "arrow"; a.textContent = "→"; e.appendChild(a);
+      const r = document.createElement("span"); r.className = "right"; r.textContent = c.right; e.appendChild(r);
+      if (c.why){ const y = document.createElement("span"); y.className = "why"; y.textContent = c.why; e.appendChild(y); }
+      elEntries.appendChild(e);
+    });
+  }
+
+  /* ---------- speech out ---------- */
+  let voices = [];
+  function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+  loadVoices();
+  if (window.speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+  function speak(text){
+    if (!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "de-DE"; u.rate = slow ? 0.72 : 0.95;
+    const de = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("de"));
+    if (de) u.voice = de;
+    speechSynthesis.speak(u);
+  }
+  elSlow.addEventListener("click", () => { slow = !slow; elSlow.setAttribute("aria-pressed", String(slow)); });
+
+  /* ---------- speech in ---------- */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let rec = null, listening = false;
+  if (!SR){
+    elMic.disabled = true;
+    note("This browser has no speech recognition. Chrome or Edge has it. Typing works the same in the meantime.");
+  } else {
+    rec = new SR();
+    rec.lang = "de-DE"; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+    rec.onstart = () => { listening = true; elMic.dataset.live = "true"; status("Hört zu…"); };
+    rec.onend = () => { listening = false; elMic.dataset.live = "false"; if(!busy) status("Bereit"); };
+    rec.onerror = (e) => {
+      listening = false; elMic.dataset.live = "false"; status("Bereit");
+      if (e.error === "not-allowed" || e.error === "service-not-allowed")
+        note("The mic is blocked. Open this page in its own tab over https (or localhost) and allow microphone access.");
+      else if (e.error === "no-speech")
+        note("Nothing came through. Tap the mic and speak a little closer.");
+      else note("Speech recognition stopped: " + e.error + ". Type instead.");
+    };
+    rec.onresult = (ev) => {
+      let txt = "";
+      for (let i=0;i<ev.results.length;i++) txt += ev.results[i][0].transcript;
+      elTyped.value = txt.trim();
+      if (ev.results[ev.results.length-1].isFinal && txt.trim()) send(txt.trim());
+    };
+  }
+  elMic.addEventListener("click", () => {
+    if (!rec || busy) return;
+    if (needKey()) return;
+    note("");
+    if (listening){ rec.stop(); return; }
+    try { rec.start(); } catch(_){ note("Could not start the mic. Open this page in its own browser tab."); }
+  });
+
+  /* ---------- input ---------- */
+  elSend.addEventListener("click", () => { const v = elTyped.value.trim(); if (v) send(v); });
+  elTyped.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      const v = elTyped.value.trim(); if (v) send(v);
+    }
+  });
+  elTyped.addEventListener("input", () => {
+    elTyped.style.height = "auto";
+    elTyped.style.height = Math.min(elTyped.scrollHeight, 96) + "px";
+  });
+
+  /* ---------- the prompt ---------- */
+  function systemText(){
+    return `Du bist eine deutsche Gesprächspartnerin für einen Erwachsenen auf B1-Niveau, der in Hamburg lebt und Angst hat, Deutsch zu sprechen. Deine einzige Aufgabe: ihn am Reden halten.
+
+SITUATION: ${topic.brief}
+
+Regeln:
+- Antworte NUR auf Deutsch, B1–B2. Ein bis drei kurze Sätze, danach IMMER eine Frage zurück.
+- Du führst das Gespräch. Schlage von dir aus Themen vor, erzähle auch mal etwas über dich, damit er reagieren kann.
+- WENN ER DAS THEMA WECHSELT, FOLGE IHM SOFORT. Bring ihn nie zum alten Thema zurück, auch nicht sanft. Sein Thema gewinnt immer.
+- Erwähne seine Fehler NIEMALS in der Antwort. Kein Lob, keine Korrektur, kein Kommentar zur Sprache.
+- Seine Eingabe kommt aus Spracherkennung: fehlende Satzzeichen und seltsame Schreibweisen sind Transkriptionsfehler, keine Sprachfehler. Interpretiere wohlwollend und korrigiere sie nicht.
+- Korrigiere im notes-Feld nur echte Fehler: Grammatik, Kasus, Wortstellung, Verbposition, Genus, falsche Wortwahl. Keine Stilfragen. War sein Deutsch in Ordnung, gib ein leeres notes-Array zurück.
+- "why" ist auf Englisch, maximal 12 Wörter.`;
+  }
+
+  const SCHEMA = {
+    type:"OBJECT",
+    properties:{
+      reply:{ type:"STRING" },
+      notes:{
+        type:"ARRAY",
+        items:{
+          type:"OBJECT",
+          properties:{ wrong:{type:"STRING"}, right:{type:"STRING"}, why:{type:"STRING"} },
+          required:["wrong","right","why"]
+        }
+      }
+    },
+    required:["reply","notes"]
+  };
+
+  async function callGemini(){
+    const key = elKey.value.trim();
+    const model = (elModel.value.trim() || "gemini-2.5-flash");
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/"
+              + encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key);
+
+    const res = await fetch(url, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        system_instruction:{ parts:[{ text: systemText() }] },
+        contents: contents.slice(-16),
+        generationConfig:{
+          temperature:0.9,
+          maxOutputTokens:800,
+          responseMimeType:"application/json",
+          responseSchema:SCHEMA,
+          thinkingConfig:{ thinkingBudget:0 }
+        }
+      })
+    });
+
+    if (!res.ok){
+      let detail = "";
+      try { const j = await res.json(); detail = (j.error && j.error.message) || ""; } catch(_){}
+      if (res.status === 429) throw new Error("Free-tier limit reached for today. It resets at midnight Pacific. " + detail);
+      if (res.status === 400 || res.status === 403) throw new Error("Google rejected the key or model. " + detail);
+      throw new Error("HTTP " + res.status + ". " + detail);
+    }
+
+    const data = await res.json();
+    const cand = data.candidates && data.candidates[0];
+    const raw = cand && cand.content && cand.content.parts
+      ? cand.content.parts.map(p => p.text || "").join("") : "";
+    if (!raw) throw new Error("Empty response from the model.");
+    try { return JSON.parse(raw); }
+    catch(_){
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (m) return JSON.parse(m[0]);
+      return { reply: raw, notes: [] };
+    }
+  }
+
+  function applyResult(parsed){
+    const reply = (parsed.reply || "").trim();
+    if (reply){
+      addTurn("theirs", reply, true);
+      contents.push({ role:"model", parts:[{ text: reply }] });
+      speak(reply);
+    }
+    if (Array.isArray(parsed.notes) && parsed.notes.length){
+      parsed.notes.forEach(n => {
+        if (n && n.wrong && n.right) corrections.push({ wrong:n.wrong, right:n.right, why:n.why || "" });
+      });
+      renderLedger();
+    }
+  }
+
+  /* ---------- she opens ---------- */
+  async function openConversation(){
+    if (needKey() || busy) return;
+    busy = true; started = true;
+    const thinking = showThinking(); status("Denkt nach…");
+    contents.push({ role:"user", parts:[{ text:"[Beginne das Gespräch. Sag Hallo, schlage ein Thema vor und stell eine Frage.]" }] });
+    try {
+      applyResult(await callGemini());
+      status("Bereit");
+    } catch(err){
+      thinking.remove(); status("Bereit");
+      contents.pop();
+      note(err.message);
+    } finally {
+      const t = elStream.querySelector(".thinking"); if (t) t.remove();
+      busy = false;
+    }
+  }
+
+  /* ---------- send ---------- */
+  async function send(text){
+    if (busy) return;
+    if (needKey()) return;
+    busy = true; note(""); elTyped.value = ""; elTyped.style.height = "auto";
+    if (!started){ started = true; }
+    addTurn("mine", text, false);
+    contents.push({ role:"user", parts:[{ text }] });
+    const thinking = showThinking(); status("Denkt nach…");
+    try {
+      applyResult(await callGemini());
+      status("Bereit");
+    } catch(err){
+      status("Bereit");
+      note(err.message + " — deine letzte Nachricht ist noch da, sag sie einfach nochmal.");
+    } finally {
+      const t = elStream.querySelector(".thinking"); if (t) t.remove();
+      busy = false;
+    }
+  }
+
+  /* ---------- export ---------- */
+  elExport.addEventListener("click", () => {
+    if (!corrections.length){ note("Nothing in the ledger yet."); return; }
+    const out = "Sprechpartner — " + topic.label + " — " + new Date().toLocaleDateString("de-DE") + "\n\n" +
+      corrections.map((c,i) => (i+1) + ". " + c.wrong + "  →  " + c.right + (c.why ? "\n   (" + c.why + ")" : "")).join("\n");
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(out)
+        .then(() => note("Copied — " + corrections.length + " corrections on the clipboard."))
+        .catch(() => note("Clipboard blocked. Select the ledger text and copy manually."));
+    } else note("Clipboard not available here. Select the ledger text and copy manually.");
+  });
+
+  /* ---------- boot ---------- */
+  if (elKey.value.trim()) openConversation();
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")){
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
+})();
+</script>
+</body>
+</html>

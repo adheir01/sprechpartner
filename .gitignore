@@ -1,0 +1,21 @@
+# Never commit a key. The app stores it in localStorage, not on disk,
+# but these are the files that would carry one if you ever add a build step.
+.env
+.env.*
+*.key
+secrets.json
+config.local.js
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Node, if you ever add Bubblewrap or a bundler
+node_modules/
+dist/
+build/
+*.log
