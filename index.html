@@ -81,6 +81,17 @@
     padding:7px 2px;font-family:var(--mono);font-size:14px;color:var(--ink);
   }
   .field input:focus{border-bottom-color:var(--petrol);outline:none;}
+  .field select{
+    width:100%;background:transparent;border:none;border-bottom:1px solid var(--line);
+    padding:7px 2px;font-family:var(--mono);font-size:14px;color:var(--ink);
+    border-radius:0;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),
+                     linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
+    background-position:calc(100% - 13px) calc(50% + 1px),calc(100% - 8px) calc(50% + 1px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+  }
+  .field select:focus{border-bottom-color:var(--petrol);outline:none;}
+  .field select:disabled{opacity:.5;}
   .field-hint{
     font-family:var(--body);font-size:14.5px;color:var(--ink-soft);margin:6px 0 0;line-height:1.4;
   }
@@ -244,6 +255,11 @@
       <input id="model" type="text" spellcheck="false" value="gemini-2.5-flash" />
       <p class="field-hint">Flash is the free workhorse. Swap in a newer one any time — AI Studio lists what your key can reach.</p>
     </div>
+    <div class="field">
+      <label for="voice">Stimme</label>
+      <select id="voice"></select>
+      <p class="field-hint">Voices marked · are the cloud ones — noticeably more human. If only flat voices are listed, see the README.</p>
+    </div>
     <label class="remember"><input type="checkbox" id="remember" checked /> Auf diesem Gerät speichern</label>
   </section>
 
@@ -330,7 +346,7 @@
         elSend=$("send"), elStatus=$("status"), elSlow=$("slow"), elNotice=$("notice"),
         elEntries=$("entries"), elTally=$("tally"), elExport=$("export"),
         elGear=$("gear"), elSettings=$("settings"), elKey=$("key"),
-        elModel=$("model"), elRemember=$("remember");
+        elModel=$("model"), elRemember=$("remember"), elVoice=$("voice");
 
   function note(html){ elNotice.innerHTML = html || ""; }
   function status(t){ elStatus.textContent = t; }
@@ -425,17 +441,81 @@
   }
 
   /* ---------- speech out ---------- */
-  let voices = [];
-  function loadVoices(){ voices = window.speechSynthesis ? speechSynthesis.getVoices() : []; }
+  let voices = [], chosenVoice = null;
+
+  // Rough quality order. Cloud voices (Google, "Natural", "Online") are the
+  // neural ones; the bare Microsoft desktop voices are the robotic fallbacks.
+  function voiceScore(v){
+    const n = (v.name + " " + (v.voiceURI || "")).toLowerCase();
+    let s = 0;
+    if (n.includes("google")) s += 100;
+    if (n.includes("natural")) s += 90;
+    if (n.includes("online")) s += 40;
+    if (n.includes("neural") || n.includes("wavenet")) s += 80;
+    if (!v.localService) s += 30;          // remote = usually the good one
+    if (v.lang && v.lang.toLowerCase() === "de-de") s += 10;
+    if (n.includes("hedda") || n.includes("stefan")) s -= 20; // legacy desktop
+    return s;
+  }
+
+  function germanVoices(){
+    return voices
+      .filter(v => v.lang && v.lang.toLowerCase().startsWith("de"))
+      .sort((a,b) => voiceScore(b) - voiceScore(a));
+  }
+
+  function fillVoiceMenu(){
+    const list = germanVoices();
+    const want = store.get("sp_voice");
+    elVoice.innerHTML = "";
+
+    if (!list.length){
+      const o = document.createElement("option");
+      o.textContent = "Keine deutsche Stimme gefunden";
+      elVoice.appendChild(o);
+      elVoice.disabled = true;
+      chosenVoice = null;
+      return;
+    }
+    elVoice.disabled = false;
+
+    list.forEach(v => {
+      const o = document.createElement("option");
+      o.value = v.voiceURI || v.name;
+      o.textContent = v.name.replace(/^Microsoft\s+/, "").replace(/\s*-\s*German.*$/i, "")
+                    + (v.localService ? "" : " ·")   // dot marks the cloud voices
+                    + "  (" + v.lang + ")";
+      elVoice.appendChild(o);
+    });
+
+    const match = want && list.find(v => (v.voiceURI || v.name) === want);
+    chosenVoice = match || list[0];
+    elVoice.value = chosenVoice.voiceURI || chosenVoice.name;
+  }
+
+  function loadVoices(){
+    voices = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+    if (voices.length) fillVoiceMenu();
+  }
   loadVoices();
   if (window.speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+
+  elVoice.addEventListener("change", () => {
+    const list = germanVoices();
+    chosenVoice = list.find(v => (v.voiceURI || v.name) === elVoice.value) || list[0];
+    if (chosenVoice) store.set("sp_voice", chosenVoice.voiceURI || chosenVoice.name);
+    speechSynthesis.cancel();
+    speak("Hallo, so klinge ich. Wollen wir anfangen?");
+  });
+
   function speak(text){
     if (!window.speechSynthesis) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "de-DE"; u.rate = slow ? 0.72 : 0.95;
-    const de = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("de"));
-    if (de) u.voice = de;
+    u.lang = "de-DE";
+    u.rate = slow ? 0.72 : 0.97;
+    u.pitch = 1.02;   // a touch above flat; above ~1.2 it starts to sing
+    if (chosenVoice) u.voice = chosenVoice;
     speechSynthesis.speak(u);
   }
   elSlow.addEventListener("click", () => { slow = !slow; elSlow.setAttribute("aria-pressed", String(slow)); });

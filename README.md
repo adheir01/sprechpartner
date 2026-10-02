@@ -42,6 +42,18 @@ Open the URL in Chrome → menu → **Add to Home screen**. It gets its own icon
 
 ---
 
+## The voice sounds robotic
+
+Pick a different one under **Schlüssel → Stimme**. The list is sorted best-first and voices marked `·` are cloud voices, which are the neural ones. Changing it plays a sample immediately.
+
+If every option still sounds flat:
+
+- **Windows**: Settings → Time & Language → Language & region → Add a language → German. Install it with the speech component ticked. That adds the neural German voices system-wide; restart Chrome afterwards.
+- **Android**: Settings → Accessibility → Text-to-speech output → make sure the engine is **Google Speech Services**, then tap the gear → Install voice data → Deutsch, and pick one of the higher-quality entries.
+- **Chrome on desktop** usually exposes `Google Deutsch` with no install at all — if it is in the list, start there.
+
+For a genuinely different class of voice, the next step is a real TTS API (Gemini TTS, ElevenLabs) instead of the browser's. That means an audio round-trip per reply rather than instant local playback, so it is a trade.
+
 ## About the key
 
 The key lives in the browser, in `localStorage`, and is sent only to Google. Nobody else can read it — as long as **you are the only person using your deployment**.
